@@ -290,15 +290,6 @@ void IWRAM_CODE SetRompageWithHardReset(u16 page,u32 bootmode)
 		//SoftReset_now(0,0x100);
 		SoftReset_now(0,0xfe);
 	}
-	else if (bootmode == 3) {
-		int i;
-		//Clear exram up to pogoshell arg
-		u32 *p = (u32*)(0x02000000);
-		for(i=0;i<0xfefe;i++)
-			p[i]=0;
-		//SoftReset_now(0,0x100);
-		SoftReset_now(0,0xfe);
-	}
 	else {
 		if(key_L)
 			HardReset();
