@@ -15,6 +15,7 @@ extern u16 gl_select_lang;
 extern u16 gl_engine_sel;
 extern u16 gl_show_Thumbnail;
 extern u16 gl_ingame_RTC_open_status;
+extern u16 gl_boot_option;
 
 extern void delay(u32 R0);
 void save_set_info_setwindow(void);
@@ -92,7 +93,9 @@ u32 Setting_window(void)
 	u16 clean_w;
 	u32 re_show=1;
 
-	u32 addon_sel=2;
+	u32 addon_sel=4;
+
+	u8 boot_pos = 2;
 	
 	u8 sleep_pos=0;
 	u8 rtshotkey_pos=0;
@@ -164,20 +167,42 @@ u32 Setting_window(void)
 			DrawHZText12(msg,0,set_offset,y_offset+line_x,gl_color_selected,1);	
 			
 				Draw_select_icon(x_offset,y_offset+line_x,v_reset);
-				sprintf(msg,"%s",gl_reset);
+				sprintf(msg,"%s","RST");
 				DrawHZText12(msg,0,x_offset+15,y_offset+line_x,(addon_sel==0)?gl_color_selected:gl_color_text,1);	
 			
-				Draw_select_icon(x_offset+12*6,y_offset+line_x,v_rts);
-				sprintf(msg,"%s",gl_rts);
-				DrawHZText12(msg,0,x_offset+12*6+15,y_offset+line_x,(addon_sel==1)?gl_color_selected:gl_color_text,1);
+				Draw_select_icon(x_offset+12*3,y_offset+line_x,v_rts);
+				sprintf(msg,"%s","SAV");
+				DrawHZText12(msg,0,x_offset+12*3+15,y_offset+line_x,(addon_sel==1)?gl_color_selected:gl_color_text,1);
 				VBlankIntrWait();	
-				Draw_select_icon(x_offset,y_offset+line_x*2,v_sleep);
-				sprintf(msg,"%s",gl_sleep);
-				DrawHZText12(msg,0,x_offset+15,y_offset+line_x*2,(addon_sel==3)?gl_color_selected:gl_color_text,1);	
+				Draw_select_icon(x_offset+12*6,y_offset+line_x,v_sleep);
+				sprintf(msg,"%s","SLP");
+				DrawHZText12(msg,0,x_offset+12*6+15,y_offset+line_x,(addon_sel==2)?gl_color_selected:gl_color_text,1);	
 				VBlankIntrWait();	
-				Draw_select_icon(x_offset+12*6,y_offset+line_x*2,v_cheat);
-				sprintf(msg,"%s",gl_cheat);
-				DrawHZText12(msg,0,x_offset+12*6+15,y_offset+line_x*2,(addon_sel==4)?gl_color_selected:gl_color_text,1);
+				Draw_select_icon(x_offset+12*9,y_offset+line_x,v_cheat);
+				sprintf(msg,"%s","CHT");
+				DrawHZText12(msg,0,x_offset+12*9+15,y_offset+line_x,(addon_sel==3)?gl_color_selected:gl_color_text,1);
+			sprintf(msg,"%s","BOOT INTO");
+
+
+			DrawHZText12(msg,0,set_offset,y_offset+line_x*2,gl_color_selected,1);
+
+
+				Draw_select_icon(x_offset,y_offset+line_x*2,!gl_boot_option);
+
+
+				sprintf(msg,"%s","EZ-MENU");
+
+
+				DrawHZText12(msg,0,x_offset+15,y_offset+line_x*2,(boot_pos==0)?gl_color_selected:gl_color_text,1);
+
+
+				Draw_select_icon(x_offset+12*6,y_offset+line_x*2,gl_boot_option);
+
+
+				sprintf(msg,"%s","NOR GAME");
+
+
+				DrawHZText12(msg,0,x_offset+12*6+15,y_offset+line_x*2,(boot_pos==1)?gl_color_selected:gl_color_text,1);
 			
 			//					
 			sprintf(msg,"%s",gl_language);
@@ -185,9 +210,9 @@ u32 Setting_window(void)
 				Draw_select_icon(x_offset,y_offset+line_x*3,(language_sel == 0x0));
 				Draw_select_icon(x_offset+12*6,y_offset+line_x*3,(language_sel == 0x1));	
 				sprintf(msg,"%s",gl_en_lang);
-				DrawHZText12(msg,0,x_offset+15,y_offset+line_x*3,((language_sel==0)&&currstate&& (2== select))?gl_color_selected:gl_color_text,1);
-				sprintf(msg,"%s",gl_zh_lang);
-				DrawHZText12(msg,0,x_offset+12*6+15,y_offset+line_x*3,((language_sel==1)&&currstate&& (2== select))?gl_color_selected:gl_color_text,1);			
+				DrawHZText12(msg,0,x_offset+15,y_offset+line_x*3,((language_sel==0)&&currstate&& (3== select))?gl_color_selected:gl_color_text,1);
+				sprintf(msg,"%s","Chinese");
+				DrawHZText12(msg,0,x_offset+12*6+15,y_offset+line_x*3,((language_sel==1)&&currstate&& (3== select))?gl_color_selected:gl_color_text,1);			
 			
 			//
 			VBlankIntrWait();			
@@ -229,21 +254,23 @@ u32 Setting_window(void)
 				DrawHZText12(msg,0,x_offset+15,y_offset+line_x*7,(RTC_pos==0)?gl_color_selected:gl_color_text,1);	
 	
 			u32 offsety;
-			for(line=0;line<7;line++)
+			for(line=0;line<8;line++)
 			{
 				if(Set_OK==1)
 				{
 					if((line== select) && (0== select)&& (edit_pos==7))
 						clean_color = gl_color_btn_clean;					
-					else if((line== select) && (1== select) && (addon_sel==2)) 
+					else if((line== select) && (1== select) && (addon_sel==4)) 
 						clean_color = gl_color_btn_clean;	
-					else if((line== select) && (3== select) && (engine_pos==1)) 
+					else if((line== select) && (2== select) && (boot_pos==2))
+						clean_color = gl_color_btn_clean;
+					else if((line== select) && (4== select) && (engine_pos==1)) 
 						clean_color = gl_color_btn_clean;	
-					else if((line== select) && (4== select) && (sleep_pos==3)) 	
+					else if((line== select) && (5== select) && (sleep_pos==3)) 	
 						clean_color = gl_color_btn_clean;	
-					else if((line== select) && (5== select) && (rtshotkey_pos==3)) 	
+					else if((line== select) && (6== select) && (rtshotkey_pos==3)) 	
 						clean_color = gl_color_btn_clean;		
-					else if((line== select) && (6== select) && (RTC_pos==1)) 
+					else if((line== select) && (7== select) && (RTC_pos==1)) 
 						clean_color = gl_color_btn_clean;	
 						
 					else 
@@ -257,7 +284,6 @@ u32 Setting_window(void)
 						clean_color = gl_color_MENU_btn;
 				}	
 				offsety = y_offset + line*line_x;
-				if(line>1) offsety += line_x; 
 					
 				Clear(202,offsety-2 ,30,14,clean_color,1);	
 				
@@ -422,11 +448,15 @@ u32 Setting_window(void)
 					{
 						addon_sel = 0;
 					}	
-					else if(select==3)
+					else if(select==2)
+					{
+						boot_pos = 0;
+					}
+					else if(select==4)
 					{								
 						engine_pos = 0;
 					}
-					else if(select==6)
+					else if(select==7)
 					{
 						RTC_pos = 0;
 					}
@@ -439,7 +469,7 @@ u32 Setting_window(void)
 
 				}
 				else if (keys  & KEY_DOWN){  
-					if(select < 6){
+					if(select < 7){
 						select++;		
 						re_show=1;
 					}
@@ -507,7 +537,7 @@ u32 Setting_window(void)
 							sprintf(msg,"20%02d/%02d/%02d %02d:%02d:%02d %s",edit_datetime[_YEAR],edit_datetime[_MONTH],edit_datetime[_DAY],edit_datetime[_HOUR],edit_datetime[_MIN],edit_datetime[_SEC] ,wkday);
 							DrawHZText12(msg,0,x_offset,y_offset,gl_color_text,1);	
 						}
-						else if(select ==4)
+						else if(select ==5)
 						{
 							ClearWithBG((u16*)gImage_SET,x_offset, y_offset+line_x*5, 23*6, 13, 1);	
 							switch(sleep_pos)
@@ -566,7 +596,7 @@ u32 Setting_window(void)
 							sprintf(msg,"%s %s  %s",str0,str1,str2);
 							DrawHZText12(msg,0,x_offset+10,y_offset+line_x*5,gl_color_text,1);
 						}
-						else if(select ==5)
+						else if(select ==6)
 						{
 							ClearWithBG((u16*)gImage_SET,x_offset, y_offset+line_x*6, 23*6, 13, 1);	
 							switch(rtshotkey_pos)
@@ -676,12 +706,7 @@ u32 Setting_window(void)
 							}
 											
 						}
-						else if(select == 1){
-							if(addon_sel>2){
-								addon_sel -= 3;
-							}
-						}
-						else if(select ==4){
+						else if(select ==5){
 							switch(sleep_pos) {
 								case 0:
 									if(edit_sleephotkey[0]==9) 
@@ -739,7 +764,7 @@ u32 Setting_window(void)
 									break;
 							}
 						}
-						else if(select ==5){
+						else if(select ==6){
 							switch(rtshotkey_pos) {
 								case 0:
 									if(edit_rtshotkey[0]==9) 
@@ -865,12 +890,7 @@ u32 Setting_window(void)
 							
 							}
 						}
-						else if(select == 1){
-							if(addon_sel<2){
-								addon_sel += 3;
-							}
-						}
-						else if(select == 4){
+						else if(select == 5){
 							switch(sleep_pos) {
 								case 0:
 									if(edit_sleephotkey[0]==0) 
@@ -946,7 +966,7 @@ u32 Setting_window(void)
 									break;
 							}
 						}
-						else if(select == 5){
+						else if(select == 6){
 							switch(rtshotkey_pos) {
 								case 0:
 									if(edit_rtshotkey[0]==0) 
@@ -1032,36 +1052,35 @@ u32 Setting_window(void)
 								edit_pos++;
 							}
 						}
-						else if(select ==1) 
+						else if(select ==1 && addon_sel < 4) 
 						{
-							if(addon_sel==3){
-								addon_sel ++;
-							}
-							else if(addon_sel<2){
-								addon_sel ++;
-							}
+							addon_sel++;
 						}
-						else if(select ==2) //lang
+						else if(select ==2 && boot_pos <2)
+						{
+							boot_pos++;
+						}
+						else if(select ==3) //lang
 						{
 							language_sel = 1;								
 						}
-						else if(select ==3)
+						else if(select ==4)
 						{
 								engine_pos = 1;
 						}
-						else if	(select ==4)
+						else if	(select ==5)
 						{
 							if(sleep_pos<3){
 								sleep_pos ++;
 							}
 						}
-						else if	(select ==5) 
+						else if	(select ==6) 
 						{
 							if(rtshotkey_pos<3){
 								rtshotkey_pos ++;
 							}
 						}
-						else if(select ==6)
+						else if(select ==7)
 						{
 								RTC_pos = 1;
 						}
@@ -1074,36 +1093,35 @@ u32 Setting_window(void)
 								edit_pos--;
 							}
 						}
-						else if(select ==1) 
+						else if(select ==1 && addon_sel) 
 						{
-							if(addon_sel==4){
-								addon_sel --;
-							}							
-							else if((addon_sel>0)&&(addon_sel<3)){
-								addon_sel --;
-							}		
+							addon_sel--;	
 						}
-						else if(select ==2) //lang
+						else if(select ==2 && boot_pos)
+						{
+							boot_pos--;
+						}
+						else if(select ==3) //lang
 						{
 								language_sel = 0;
 						}						
-						else if(select ==3)
+						else if(select ==4)
 						{
 								engine_pos = 0;
 						}
-						else if(select ==4)	
+						else if(select ==5)	
 						{
 							if(sleep_pos){
 								sleep_pos--;
 							}	
 						}	
-						else if(select ==5)	
+						else if(select ==6)	
 						{
 							if(rtshotkey_pos){
 								rtshotkey_pos--;
 							}		
 						}	
-						else if(select ==6)
+						else if(select ==7)
 						{
 								RTC_pos = 0;
 						}
@@ -1122,9 +1140,9 @@ u32 Setting_window(void)
 							{
 								case 0:v_reset = !v_reset;break;
 								case 1:v_rts   = !v_rts;break;
-								case 3:v_sleep = !v_sleep;break;
-								case 4:v_cheat = !v_cheat;break;	
-								case 2:
+								case 2:v_sleep = !v_sleep;break;
+								case 3:v_cheat = !v_cheat;break;	
+								case 4:
 									{
 										save_set_info_setwindow();
 										CheckSwitch(); //read again  
@@ -1135,12 +1153,22 @@ u32 Setting_window(void)
 						}
 						else if(select == 2) 
 						{
+							if(boot_pos < 2) {
+								gl_boot_option = boot_pos;
+							}
+							else {
+								save_set_info_setwindow();
+								Set_OK = 0;
+							}
+						}
+						else if(select == 3)
+						{
 							save_set_info_setwindow();
 							CheckLanguage(); //read again    	
 							ClearWithBG((u16*)gImage_SET,0, 20, 240, 160-20, 1);
 							Set_OK = 0;													
 						}
-						else if(select == 3) 
+						else if(select == 4) 
 						{
 							switch(engine_pos)
 							{
@@ -1158,17 +1186,17 @@ u32 Setting_window(void)
 									}
 							}	
 						}
-						else if((select == 4)  && (sleep_pos==3))
+						else if((select == 5)  && (sleep_pos==3))
 						{
 							save_set_info_setwindow();
 							Set_OK = 0;
 						}			
-						else if((select == 5)  && (rtshotkey_pos==3))
+						else if((select == 6)  && (rtshotkey_pos==3))
 						{
 							save_set_info_setwindow();
 							Set_OK = 0;	
 						}			
-						else if(select == 6) 
+						else if(select == 7) 
 						{
 							switch(RTC_pos)
 							{
@@ -1221,7 +1249,7 @@ void save_set_info_setwindow(void) //DO NOT MAKE FUNCTIONS WITH THE SAME NAME IN
 	SET_info_buffer[13] = gl_ingame_RTC_open_status;
 	SET_info_buffer[14] = gl_toggle_reset;
 	SET_info_buffer[15] = gl_toggle_backup;
-						
+	SET_info_buffer[17] = gl_boot_option;						
 	//save to nor 
 	Save_SET_info(SET_info_buffer,0x200);
 }

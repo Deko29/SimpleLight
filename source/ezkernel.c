@@ -136,6 +136,7 @@ u16 gl_reset_on;
 u16 gl_rts_on;
 u16 gl_sleep_on;
 u16 gl_cheat_on;
+u16 gl_boot_option;
 
 //----------------------------------------
 u16 gl_color_selected = RGB(00, 20, 26);
@@ -191,6 +192,9 @@ void Show_help_window()
 	DrawHZText12(gl_L_A_help, 0, 52, 50, gl_color_text, 1);
 	DrawHZText12("L+Start:", 0, 3, 65, gl_color_selected, 1);
 	DrawHZText12(gl_LSTART_help, 0, 52, 65, gl_color_text, 1);
+	DrawHZText12("HOLD L :",0,3,80, gl_color_selected,1);
+    DrawHZText12("Alternate boot",0,52,80, gl_color_text,1);
+    DrawHZText12("into NOR / EZ-MENU",0,52,90, gl_color_text,1);
 	DrawHZText12(gl_online_manual, 0, 240 - 70 - 10, 74, gl_color_text, 1);
 	DrawHZText12(gl_theme_credit, 0, 4, 105, gl_color_selected, 1);
 	DrawHZText12(gl_theme_credit2, 0, 4, 120, gl_color_selected, 1);
@@ -1308,7 +1312,7 @@ void CheckLanguage(void)
 	if (gl_select_lang == 0xE1E1) { //english
 		LoadEnglish();
 	}
-	else { //ÖÐÎÄ
+	else { //ï¿½ï¿½ï¿½ï¿½
 		LoadChinese();
 	}
 }
@@ -1355,6 +1359,11 @@ void CheckSwitch(void)
 	if ((gl_ingame_RTC_open_status != 0x0) && (gl_ingame_RTC_open_status != 0x1)) {
 		gl_ingame_RTC_open_status = 0x1;
 	}
+	gl_boot_option = Read_SET_info(17);
+  	if( (gl_boot_option != 0x0) && (gl_boot_option != 0x1))
+  	{
+   		gl_boot_option = 0x0;
+  	}
 }
 //---------------------------------------------------------------------------------
 void ShowTime(u32 page_num, u32 page_mode)
@@ -1616,6 +1625,7 @@ void save_set_info_SELECT(void)
 	SET_info_buffer[14] = gl_toggle_reset;
 	SET_info_buffer[15] = gl_toggle_backup;
 	SET_info_buffer[16] = gl_toggle_bold;
+	SET_info_buffer[17] = gl_boot_option;
 	//save to nor
 	Save_SET_info(SET_info_buffer, 0x200);
 }
@@ -1926,6 +1936,7 @@ int main(void)
 	gl_toggle_reset = Read_SET_info(14);
 	gl_toggle_backup = Read_SET_info(15);
 	gl_toggle_bold = Read_SET_info(16);
+	gl_boot_option = Read_SET_info(17);
 	gl_currentpage = 0x8002;//kernel mode
 	SetMode(MODE_3 | BG2_ENABLE);
 	SD_Disable();
@@ -1997,7 +2008,7 @@ int main(void)
 	else {
 		VBlankIntrWait();
 		scanKeys();
-		if (keysDownRepeat() & KEY_L || keysDown() & KEY_L)
+		if (gl_boot_option ^ (keysDownRepeat() & KEY_L || keysDown() & KEY_L))
 		{
 			page_num = NOR_list;
 			goto load_file;
