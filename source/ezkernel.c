@@ -193,13 +193,13 @@ void Show_help_window()
 	DrawHZText12("L+Start:", 0, 3, 65, gl_color_selected, 1);
 	DrawHZText12(gl_LSTART_help, 0, 52, 65, gl_color_text, 1);
 	DrawHZText12("HOLD L :",0,3,80, gl_color_selected,1);
-    DrawHZText12("Alternate boot",0,52,80, gl_color_text,1);
-    DrawHZText12("into NOR / EZ-MENU",0,52,90, gl_color_text,1);
-	DrawHZText12(gl_online_manual, 0, 240 - 70 - 10, 74, gl_color_text, 1);
+    DrawHZText12("Switch boot between",0,52,80, gl_color_text,1);
+    DrawHZText12("NOR / EZ-MENU",0,52,90, gl_color_text,1);
+	//DrawHZText12(gl_online_manual, 0, 240 - 70 - 10, 74, gl_color_text, 1);
 	DrawHZText12(gl_theme_credit, 0, 4, 105, gl_color_selected, 1);
 	DrawHZText12(gl_theme_credit2, 0, 4, 120, gl_color_selected, 1);
 	DrawHZText12(gl_theme_credit3, 0, 4, 135, gl_color_selected, 1);
-	DrawHZText12("K:1.10 F:9", 0, 240 - 70, 3, gl_color_text, 1);
+	DrawHZText12("K:1.10 F:9", 0, 240 - 60 - 3, 3, gl_color_text, 1);
 	while (1) {
 		VBlankIntrWait();
 		scanKeys();
@@ -2017,6 +2017,15 @@ int main(void)
 	}
 
 refind_file:
+	if (folder_select) {
+		file_select = p_folder_select_file_select[folder_select];
+		show_offset = p_folder_select_show_offset[folder_select];
+	}
+	else {
+		file_select = 0;
+		show_offset = 0;
+	}
+refind_file_wo_addr_rst:
 	if (page_num == SD_list) {
 		folder_total = 0;
 		game_total_SD = 0;
@@ -2055,14 +2064,6 @@ refind_file:
 		Read_NOR_info();
 		gl_norOffset = 0x000000;
 		game_total_NOR = GetFileListFromNor();
-	}
-	if (folder_select) {
-		file_select = p_folder_select_file_select[folder_select];
-		show_offset = p_folder_select_show_offset[folder_select];
-	}
-	else {
-		file_select = 0;
-		show_offset = 0;
 	}
 	continue_MENU = 0;
 	u32 haveThumbnail;
@@ -2402,7 +2403,7 @@ re_showfile:
 						in_recently_play = 0;
 						DrawPic((u16*)gImage_SD, 0, 0, 240, 160, 0, 0, 1);
 						Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
-						goto refind_file;
+						goto refind_file_wo_addr_rst;
 					}
 					if (keysdown & KEY_A) {
 						if (MENU_line == 0) { //boot to NOR.page
@@ -2410,28 +2411,28 @@ re_showfile:
 							save_set_info_SELECT();
 							updata = 1;
 							Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
-							goto refind_file;
+							goto refind_file_wo_addr_rst;
 						}
 						else if (MENU_line == 1) {
 							gl_toggle_reset = !gl_toggle_reset;
 							save_set_info_SELECT();
 							updata = 1;
 							Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
-							goto refind_file;
+							goto refind_file_wo_addr_rst;
 						}
 						else if (MENU_line == 2) {
 							gl_toggle_backup = !gl_toggle_backup;
 							save_set_info_SELECT();
 							updata = 1;
 							Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
-							goto refind_file;
+							goto refind_file_wo_addr_rst;
 						}
 						else if (MENU_line == 3) {
 							gl_toggle_bold = !gl_toggle_bold;
 							save_set_info_SELECT();
 							updata = 1;
 							Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
-							goto refind_file;
+							goto refind_file_wo_addr_rst;
 						}
 					}
 				}
@@ -2843,9 +2844,10 @@ re_showfile:
 					: (is_EMU == 7) ? 4
 					: ((is_EMU == 8) ? 5 : 3)) : gl_toggle_reset;
 			SetRompageWithHardReset(0x200, bootmode);
-			while (1) {
-				VBlankIntrWait();
-			}
+			
+			VBlankIntrWait();
+
+			goto re_show_menu;
 		}
 		if (page_num == NOR_list) { //boot nor game
 			if (pNorFS[show_offset + file_select].have_patch && pNorFS[show_offset + file_select].have_RTS) {
