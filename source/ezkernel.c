@@ -155,6 +155,7 @@ u16 gl_color_cheat_count = RGB(00, 31, 00);
 u16 gl_color_cheat_black = RGB(00, 00, 00);
 u16 gl_color_NORFULL = RGB(31, 00, 00);
 u16 gl_color_btn_clean = RGB(8, 8, 31);
+u8  gl_emu_exited = 0;
 //******************************************************************************
 void delay(u32 R0)
 {
@@ -1365,6 +1366,11 @@ void CheckSwitch(void)
   	{
    		gl_boot_option = 0x0;
   	}
+
+	if( (gl_emu_exited != 0x0) && (gl_emu_exited != 0x1))
+  	{
+   		gl_emu_exited = 0x0;
+  	}
 }
 //---------------------------------------------------------------------------------
 void ShowTime(u32 page_num, u32 page_mode)
@@ -1627,6 +1633,7 @@ void save_set_info_SELECT(void)
 	SET_info_buffer[15] = gl_toggle_backup;
 	SET_info_buffer[16] = gl_toggle_bold;
 	SET_info_buffer[17] = gl_boot_option;
+	SET_info_buffer[18] = gl_emu_exited;
 	//save to nor
 	Save_SET_info(SET_info_buffer, 0x200);
 }
@@ -1922,6 +1929,7 @@ int main(void)
 	irqInit();
 	irqEnable(IRQ_VBLANK);
 	REG_IME = 1;
+	u8  l_emu_exited;
 	u32 res;
 	u32 game_folder_total;
 	u32 file_select;
@@ -2009,11 +2017,15 @@ int main(void)
 	else {
 		VBlankIntrWait();
 		scanKeys();
-		if (gl_boot_option ^ (keysDownRepeat() & KEY_L || keysDown() & KEY_L))
+		l_emu_exited = Read_SET_info(18);
+		if ((gl_boot_option ^ (keysDownRepeat() & KEY_L || keysDown() & KEY_L)) && !l_emu_exited)
 		{
 			page_num = NOR_list;
 			goto load_file;
 		}
+		// always set emu_exit flag to 0 to restore boot behaviour set in config
+		gl_emu_exited = 0;
+		save_set_info_SELECT();
 	}
 
 refind_file:
@@ -2843,11 +2855,15 @@ re_showfile:
 				((is_EMU == 6) ? 2
 					: (is_EMU == 7) ? 4
 					: ((is_EMU == 8) ? 5 : 3)) : gl_toggle_reset;
+
+
+			gl_emu_exited = 1;
+			save_set_info_SELECT();
 			SetRompageWithHardReset(0x200, bootmode);
 			
-			VBlankIntrWait();
-
-			goto re_show_menu;
+			while (1) {
+				VBlankIntrWait();
+			}
 		}
 		if (page_num == NOR_list) { //boot nor game
 			if (pNorFS[show_offset + file_select].have_patch && pNorFS[show_offset + file_select].have_RTS) {
