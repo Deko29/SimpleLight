@@ -129,7 +129,7 @@ const char zh_set_btn[]="����";
 const char zh_ok_btn[]="����";
 const char zh_formatnor_info[]="ȷ��?��Լ4����";
 
-const char zh_theme_credit[]="Simple���� v3.8";
+const char zh_theme_credit[]="Simple���� v3.8.2";
 const char zh_theme_credit2[]="by Sterophonick";
 
 const char zh_check_sav[]="���SAV�ļ�";
@@ -233,7 +233,7 @@ const char en_ok_btn[]=" OK";
 const char en_formatnor_info1[]="Are you sure?";
 const char en_formatnor_info2[]="This will take a while.";
 
-const char en_theme_credit[]="Simple v3.8 by";
+const char en_theme_credit[]="Simple v3.8.2 by";
 const char en_theme_credit2[]="Atapi/Sterophonick.";
 const char en_theme_credit3[]="Fork by: Maxim Balajan";
 
