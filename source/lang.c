@@ -86,6 +86,8 @@ char* gl_error_3;
 char* gl_error_4;
 char* gl_error_5;
 char* gl_error_6;
+char* gl_error_7;
+char* gl_error_8;
 //--
 char**  gl_rom_menu;
 char**  gl_more_options;
@@ -131,7 +133,7 @@ const char zh_set_btn[]="����";
 const char zh_ok_btn[]="����";
 const char zh_formatnor_info[]="ȷ��?��Լ4����";
 
-const char zh_theme_credit[]="Simple���� v3.8.2";
+const char zh_theme_credit[]="Simple����++ v3.8.2";
 const char zh_theme_credit2[]="by Sterophonick";
 
 const char zh_check_sav[]="���SAV�ļ�";
@@ -174,6 +176,8 @@ const char zh_error_3[]="�浵����";
 const char zh_error_4[]="��ȡ�浵����";
 const char zh_error_5[]="�����浵����";
 const char zh_error_6[]="RTS�ļ�����";
+const char zh_error_7[]="RECENT.TXT contents invalid!";
+const char zh_error_8[]="NOR folder detected on SD root. Delete it!";
 
 const char zh_copying_data[]="����ROM...";
 const char zh_generating_emu[]="����ģ����...";
@@ -237,7 +241,7 @@ const char en_ok_btn[]=" OK";
 const char en_formatnor_info1[]="Are you sure?";
 const char en_formatnor_info2[]="This will take a while.";
 
-const char en_theme_credit[]="Simple v3.8.3e by";
+const char en_theme_credit[]="SimpleLight++ v3.8.3 by";
 const char en_theme_credit2[]="Atapi/Sterophonick.";
 const char en_theme_credit3[]="Fork by: Maxim Balajan";
 
@@ -281,6 +285,8 @@ const char en_error_3[]="Save error";
 const char en_error_4[]="Read save error";
 const char en_error_5[]="Make save error";
 const char en_error_6[]="RTS file error";
+const char en_error_7[]="RECENT.TXT contents invalid!";
+const char en_error_8[]="NOR folder detected on SD root. Delete it!";
 
 const char en_copying_data[]="Copying ROM...";
 const char en_generating_emu[]="Generating Emulator...";
@@ -389,6 +395,8 @@ void LoadChinese(void)
 	gl_error_4 = (char*)zh_error_4;
 	gl_error_5 = (char*)zh_error_5;
 	gl_error_6 = (char*)zh_error_6;
+	gl_error_7 = (char*)zh_error_7;
+	gl_error_8 = (char*)zh_error_8;
 	//
 	gl_rom_menu = (char**)zh_rom_menu;
 	gl_more_options = (char**)zh_more_options;
@@ -482,6 +490,8 @@ void LoadEnglish(void)
 	gl_error_4 = (char*)en_error_4;
 	gl_error_5 = (char*)en_error_5;
 	gl_error_6 = (char*)en_error_6;
+	gl_error_7 = (char*)en_error_7;
+	gl_error_8 = (char*)en_error_8;
 	//
 	gl_rom_menu = (char**)en_rom_menu;
 	gl_nor_op = (char**)en_nor_op;

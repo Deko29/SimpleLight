@@ -24,6 +24,8 @@
 #include "images/splash.h"
 
 #ifdef DARK
+// Uncomment this if slower startup time doesn't bother you but want to have a (hopefully) bugless experience
+// Some error screens might be untested, so watch out...
 // #ifdef SLOW_BUT_SAFE
 #include "images/dark/SD.h"
 #include "images/dark/NOR.h"
@@ -196,7 +198,7 @@ void Show_help_window()
 	DrawHZText12(gl_LSTART_help, 0, 52, 65, gl_color_text, 1);
 	DrawHZText12("HOLD L :",0,3,80, gl_color_selected,1);
     DrawHZText12("Switch boot between",0,52,80, gl_color_text,1);
-    DrawHZText12("NOR / EZ-MENU",0,52,90, gl_color_text,1);
+    DrawHZText12("MENU / NOR / LAST",0,52,90, gl_color_text,1);
 	//DrawHZText12(gl_online_manual, 0, 240 - 70 - 10, 74, gl_color_text, 1);
 	DrawHZText12(gl_theme_credit, 0, 4, 105, gl_color_selected, 1);
 	DrawHZText12(gl_theme_credit2, 0, 4, 120, gl_color_selected, 1);
@@ -1858,6 +1860,12 @@ void Show_error_num(u8 error_num)
 	case 0x6:
 		sprintf(msg, "%s", gl_error_6);
 		break;
+	case 0x7:
+		sprintf(msg, "%s", gl_error_7);
+		break;
+	case 0x8:
+		sprintf(msg, "%s", gl_error_8);
+		break;
 	default:
 		sprintf(msg, "%s", "error?");
 		break;
@@ -2121,18 +2129,16 @@ int main(void)
 	}
 	*/
 	REG_BLDCNT = 0x00C4;
-	res = f_mount(&EZcardFs, "", 1);
-	if (res != FR_OK) {
-		DrawHZText12(gl_init_error, 0, 2, 20, 0x0000, 1);
-		DrawHZText12(gl_power_off, 0, 2, 33, 0x0000, 1);
-		while (1) {
-			VBlankIntrWait();
+	// Try to mount, whatever it takes! Otherwise saves made by Goomba emulator could be corrupted
+	do {
+		res = f_mount(&EZcardFs, "", 1);
+		if (res != FR_OK) {
+			DrawHZText12(gl_init_error, 0, 2, 20, 0x0000, 1);
+			DrawHZText12(gl_power_off, 0, 2, 33, 0x0000, 1);
 		}
-	}
-	else {
-		DrawHZText12(gl_init_ok, 0, 2, 20, 0x0000, 1);
-		DrawHZText12(gl_Loading, 0, 2, 33, 0x0000, 1);
-	}
+	} while (res != FR_OK);
+	DrawHZText12(gl_init_ok, 0, 2, 20, 0x0000, 1);
+	DrawHZText12(gl_Loading, 0, 2, 33, 0x0000, 1);
 	/*
 	for(i = 0; i < 16; i++) {
 		VBlankIntrWait();
@@ -2160,6 +2166,18 @@ int main(void)
 	Read_NOR_info();
 	gl_norOffset = 0x000000;
 	game_total_NOR = GetFileListFromNor();//initialize to prevent direct writes to NOR without page turning
+
+#ifdef SLOW_BUT_SAFE
+	FILINFO fno;
+    res = f_stat("/NOR", &fno);
+    if (res == FR_OK || res != FR_NO_FILE) {
+		Show_error_num(8);
+		while(1) {
+			VBlankIntrWait();
+		}
+    }
+#endif
+
 	VBlankIntrWait();
 	scanKeys();
 
@@ -2573,10 +2591,16 @@ re_showfile:
 						if (MENU_line < MENU_max) {
 							MENU_line++;
 						}
+						else {
+							MENU_line = 0;
+						}
 					}
 					else if (keysdown & KEY_UP) {
 						if (MENU_line > 0) {
 							MENU_line--;
+						}
+						else {
+							MENU_line = MENU_max;
 						}
 					}
 					else if (keysdown & KEY_LEFT || keysdown & KEY_L) {
@@ -2633,25 +2657,24 @@ re_showfile:
 				}
 			}
 			else if (keysdown & (KEY_START)) {
-				if (page_num == SD_list) { //only work on sd list
-					if (key_L) {
-						if (show_offset + file_select >= folder_total) {
-							SD_list_L_START(show_offset, file_select, folder_total);
-							goto refind_file;
-						}
-					}
-					else { //only START //Recently played
-						play_re = show_recently_play();
-						if (play_re == 0xBB) {
-							in_recently_play = 0;
-							goto refind_file;//KEY B
-						}
-						else {
-							page_mode = 0x1;
-							break;
-						}
+				if (key_L) {
+					if (show_offset + file_select >= folder_total) {
+						SD_list_L_START(show_offset, file_select, folder_total);
+						goto refind_file;
 					}
 				}
+				else { //only START //Recently played
+					play_re = show_recently_play();
+					if (play_re == 0xBB) {
+						in_recently_play = 0;
+						goto refind_file;//KEY B
+					}
+					else {
+						page_mode = 0x1;
+						break;
+					}
+				}
+
 			}
 			ShowTime(page_num, page_mode);
 		}	//2
@@ -2783,7 +2806,6 @@ re_showfile:
 					res = f_chdir("/SYSTEM");
 					// NOR IDs stored as part of filename -> possible because Nor Games are stored as LIFO Stack
 					char index_buffer[4 + strlen("/NOR/")];
-					// TODO: Not working correctly
 					snprintf(index_buffer, 4 + strlen("/NOR/"), "/NOR/%d", show_offset + file_select);
 					Make_recently_play_file(index_buffer, pfilename, MENU_line);	
 

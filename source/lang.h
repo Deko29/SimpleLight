@@ -86,6 +86,8 @@ extern char* gl_error_3;
 extern char* gl_error_4;
 extern char* gl_error_5;
 extern char* gl_error_6;
+extern char* gl_error_7;
+extern char* gl_error_8;
 
 extern char**  	gl_rom_menu;
 extern char**  gl_more_options;
