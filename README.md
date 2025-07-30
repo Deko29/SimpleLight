@@ -1,19 +1,30 @@
 ###### FORKED FROM https://github.com/Sterophonick/SimpleLight
 
-# SimpleLight for EZ Flash Omega (+ extra features)
+# SimpleLight++ (EZ Flash Omega)
 
-This is a small Fork of the SimpleLight CFW aimed to introduce new QoL features and to fix various bugs.
+This is SimpleLight++, a small Fork of the SimpleLight CFW aimed to introduce new QoL features and to fix various bugs.
 
 Huge thank you to all authors of the original CFW and the SimpleLight CFW, without you this project wouldn't be possible!
 
 ## New Features
-* Config option to set whether cart should boot into first NOR Game or into EZ-Menu. \
-Alternate boot to different option by holding L during boot.
-* "Fixed" memory corruption after exiting GB/GBC games. Saves should be safer on standard Omega cards
+- New Boot Options:
+  
+  - MENU: Standard booting behaviour. If L is pressed, boot into the first NOR game
+  - NOR: Boot into first NOR game. If L is pressed, boot into the EZ-Menu
+  - LAST: Boot into your last recent game/software (also takes NOR Games into account). If L is pressed, boot into the EZ-Menu
+    
+- Overhauled Settings and extra Settings window! Extra Settings Window now controllable via arrow and L/R keys
+
+## Bug Fixes:
+* "Fixed" memory corruption after exiting GB/GBC games. Saves should be safer on standard Omega cards \
+  (NO GARANTEE THAT SAVES ARE SECURE!)
 * Cursor of file explorer will not reset anymore when opening expanded settings via SELECT
+* Various other minor tweeks
 
 ## Known Issues
 * Chinese Language Option is broken
+
+If you have any feature requests or issues, please let me know :)
 
 # Original ReadMe...
 
