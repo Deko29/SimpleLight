@@ -24,6 +24,7 @@
 #include "images/splash.h"
 
 #ifdef DARK
+// #ifdef SLOW_BUT_SAFE
 #include "images/dark/SD.h"
 #include "images/dark/NOR.h"
 #include "images/dark/SET.h"
@@ -1077,13 +1078,12 @@ void Make_recently_play_file(TCHAR* path, TCHAR* gamefilename, u8 delete_mode)
 			}
 		}
 	}
-	if (!delete_mode) {
-		dmaCopy(buf, &(p_recently_play[0]), 512);	//write first one
-	}
+	dmaCopy(buf, &(p_recently_play[0]), 512);	//write first one
+
 	res = f_open(&gfile, "RECENT.TXT", FA_WRITE | FA_OPEN_ALWAYS);
 	if (res == FR_OK) {
 		f_lseek(&gfile, 0x0000);
-		u8 n = delete_mode == 0x2 ? strlen("/SYSTEM/NOR") : strlen(buf);
+		u8 n = delete_mode == 0x2 ? strlen("/NOR") : strlen(buf);
 		for (i = 0; i < count + 1; i++) {
 			if (delete_mode && !strncmp(buf, p_recently_play[i], n)) {
 				continue;
@@ -2009,6 +2009,64 @@ void draw_labels_extra_menu(int MENU_line, int color) {
 	}
 }
 
+u8 check_recent_boot_option(char **pfilename, u8 **recent_entry, u32 *is_EMU, PAGE_NUM *page_num, u32 *file_select, u32 *show_offset, TCHAR **currentpath) {
+	TCHAR currentpath_temp[MAX_path_len];
+	
+	// Check if NOR Game was found
+	*pfilename = *recent_entry;
+
+	if (!strncmp("/NOR/", *pfilename, strlen("/NOR/"))) {
+		size_t pfile_length = strlen(*pfilename);
+		char *pfilename_tmp = malloc(pfile_length);
+		if (pfilename_tmp == NULL) {
+			return 1;
+		}
+
+		strcpy(pfilename_tmp, *pfilename);
+
+		pfilename_tmp += strlen("/NOR/");
+		TCHAR *left_slash = strchr(pfilename_tmp, '/');
+		// Failsave: If File is not as expected, don't try to boot it
+		if (!left_slash) {
+			free(pfilename_tmp);
+			return 1;
+		}
+		*left_slash = '\0';
+		char *endptr;
+
+		long offset = strtol(pfilename_tmp, &endptr, 10);
+
+		if (*endptr != '\0') {
+			free(pfilename_tmp);
+			return 1;
+		}
+
+		*page_num = NOR_list;
+		*file_select = (u32) offset;
+		*show_offset = 0;
+
+		free(pfilename_tmp);
+
+		*pfilename = endptr + 1;
+	}
+	else {
+		u8* p = strrchr(*recent_entry, '/');
+		strncpy(currentpath_temp, *currentpath, 256);//old
+		memset(*currentpath, 00, 256);
+		strncpy(*currentpath, *recent_entry, p - *recent_entry);
+		if ((*currentpath)[0] == 0) {
+			(*currentpath)[0] = '/';
+		}
+		memset(current_filename, 00, 200);
+		strncpy(current_filename, p + 1, 100);//remove directory path
+		*pfilename = current_filename;
+
+		*is_EMU = Check_file_type(*pfilename);
+	}
+
+	return 0;
+}
+
 //---------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------
@@ -2123,59 +2181,24 @@ int main(void)
 			page_num = SD_list;
 			if(get_count()) {
 
-				// Check if NOR Game was found
-				pfilename = p_recently_play[0];
+				u8 *most_recent_entry = p_recently_play[0];
+				TCHAR *curr_path = (TCHAR *) currentpath;
 
-				if (!strncmp("/SYSTEM/NOR/", pfilename, strlen("/SYSTEM/NOR/"))) {
-					pfilename += strlen("/SYSTEM/NOR/");
-					TCHAR *left_slash = strchr(pfilename, '/');
-					// Failsave: If File is not as expected, don't try to boot it
-					if (!left_slash) {
-						while (1) {
-							DrawHZText12("Failed at left_slash", 20, 20, 100, gl_color_text, 1);
-							DrawHZText12(pfilename, 20, 20, 80, gl_color_text, 1);
-						
-							VBlankIntrWait();
-						}
-					
+				if (check_recent_boot_option(&pfilename, &most_recent_entry, &is_EMU, &page_num, &file_select, &show_offset, &curr_path)) {
+					goto skip_autoboot;
+				}
+#ifdef SLOW_BUT_SAFE
+				if (page_num == SD_list) {
+					FILINFO fno;
+					// If file does not exist, then do not attempt to autoboot
+					if (f_stat(most_recent_entry, &fno) != FR_OK) {
 						goto skip_autoboot;
 					}
-					*left_slash = '\0';
-					char *endptr;
-
-					long offset = strtol(pfilename, &endptr, 10);
-
-					if (*endptr != '\0') {
-						while (1) {
-							DrawHZText12("Failed at endptr check", 20, 20, 100, gl_color_text, 1);
-						
-							VBlankIntrWait();
-						}
-						goto skip_autoboot;
-					}
-
-					page_num = NOR_list;
-					file_select = (u32) offset;
-					show_offset = 0;
 				}
-				else {
-					u8* p = strrchr(p_recently_play[0], '/');
-					strncpy(currentpath_temp, currentpath, 256);//old
-					memset(currentpath, 00, 256);
-					strncpy(currentpath, p_recently_play[0], p - p_recently_play[0]);
-					if (currentpath[0] == 0) {
-						currentpath[0] = '/';
-					}
-					memset(current_filename, 00, 200);
-					strncpy(current_filename, p + 1, 100);//remove directory path
-					pfilename = current_filename;
-
-					is_EMU = Check_file_type(pfilename);
-				}
+#endif
 
 				goto load_file;
 			}
-			//while(1) 	{VBlankIntrWait();}
 		}
 	}
 skip_autoboot:
@@ -2643,16 +2666,25 @@ re_showfile:
 			}
 		}
 		else {
-			u8* p = strrchr(p_recently_play[play_re], '/');
-			strncpy(currentpath_temp, currentpath, 256);//old
-			memset(currentpath, 00, 256);
-			strncpy(currentpath, p_recently_play[play_re], p - p_recently_play[play_re]);
-			if (currentpath[0] == 0) {
-				currentpath[0] = '/';
+
+			u8 *recent_entry = p_recently_play[play_re];
+			TCHAR *curr_path = (TCHAR *) currentpath;
+
+			if (check_recent_boot_option(&pfilename, &recent_entry, &is_EMU, &page_num, &file_select, &show_offset, &curr_path)) {
+				error_num = 7;
+				Show_error_num(error_num);
+				goto re_showfile;
 			}
-			memset(current_filename, 00, 200);
-			strncpy(current_filename, p + 1, 100);//remove directory path
-			pfilename = current_filename;
+
+			if (page_num == NOR_list) {
+				res = f_chdir("/SYSTEM");
+				// NOR IDs stored as part of filename -> possible because Nor Games are stored as LIFO Stack
+				char index_buffer[4 + strlen("/NOR/")];
+				snprintf(index_buffer, 4 + strlen("/NOR/"), "/NOR/%d", show_offset + file_select);
+				Make_recently_play_file(index_buffer, pfilename, 0);	
+			}
+
+			goto load_file;
 		}
 		u8 Save_num = 0;//save tpye: auto
 		u8 old_Save_num = 0;
@@ -2747,6 +2779,14 @@ re_showfile:
 			}
 			else if (keysdown & KEY_A) {
 				if (page_num == NOR_list) {
+
+					res = f_chdir("/SYSTEM");
+					// NOR IDs stored as part of filename -> possible because Nor Games are stored as LIFO Stack
+					char index_buffer[4 + strlen("/NOR/")];
+					// TODO: Not working correctly
+					snprintf(index_buffer, 4 + strlen("/NOR/"), "/NOR/%d", show_offset + file_select);
+					Make_recently_play_file(index_buffer, pfilename, MENU_line);	
+
 					if (MENU_line == 0) { //boot to NOR.page
 						break;
 					}
@@ -2863,15 +2903,6 @@ re_showfile:
 				Make_recently_play_file(currentpath, pfilename, 0x0);
 				res = f_chdir("/SYSTEM/SAVER");
 			}
-		}
-		if (page_num == NOR_list) {
-			res = f_chdir("/SYSTEM");
-			// NOR IDs stored as part of filename -> possible because Nor Games are stored as LIFO Stack
-			char index_buffer[4 + strlen("/SYSTEM/NOR/")];
-			// TODO: Not working correctly
-			snprintf(index_buffer, 4 + strlen("/SYSTEM/NOR/"), "/SYSTEM/NOR/%d", show_offset + file_select);
-			Make_recently_play_file(index_buffer, pfilename, MENU_line);
-			res = f_chdir("/");			
 		}
 		if (Save_num == 0) { //auto
 			saveMODE = Check_saveMODE(GAMECODE);
