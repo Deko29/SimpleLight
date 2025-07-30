@@ -24,6 +24,10 @@ Huge thank you to all authors of the original CFW and the SimpleLight CFW, witho
 ## Known Issues
 * Chinese Language Option is broken
 
+## Notes
+* DO NOT alter the "RECENT.TXT" file! This is used for the "LAST" boot option and can otherwise lead to undefined behaviour
+* DO NOT create a folder/file called "NOR" on root level! An error should be thrown because this keyword is reserved for NOR games
+
 If you have any feature requests or issues, please let me know :)
 
 # Original ReadMe...
