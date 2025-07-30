@@ -15,6 +15,7 @@ extern char* gl_theme_credit3;
 extern char* gl_generating_emu;
 
 extern char* gl_menu_btn;
+extern char* gl_menu_close;
 extern char* gl_lastest_game;
 
 extern char* gl_writing;

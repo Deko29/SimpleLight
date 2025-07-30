@@ -813,6 +813,13 @@ void Show_MENU_btn()
 	sprintf(msg, "%s", gl_menu_btn);
 	DrawHZText12(msg, 0, 60, 118, gl_color_text, 1);
 }
+
+void Show_MENU_close()
+{
+	char msg[30];
+	sprintf(msg, "%s", gl_menu_close);
+	DrawHZText12(msg, 0, 60, 118, gl_color_text, 1);
+}
 //---------------------------------------------------------------------------------
 void Show_MENU(u32 menu_select, PAGE_NUM page, u32 havecht, u32 Save_num, u32 is_menu)
 {
@@ -882,16 +889,19 @@ void Show_MENU(u32 menu_select, PAGE_NUM page, u32 havecht, u32 Save_num, u32 is
 	}
 }
 
-void Show_Extra_Menu(u32 menu_select)
+void Show_Extra_Menu(u32 menu_select, u8 delete)
 {
 	int line;
 	u32 y_offset = 30;
 	u16 name_color;
 	char msg[30];
 	u32 linemax;
-	linemax = 4;
+	linemax = 5;
 	for (line = 0; line < linemax; line++) {
-		if (line == menu_select) {
+		if (delete) {
+			name_color = gl_color_MENU_btn;
+		}
+		else if (line == menu_select) {
 			name_color = gl_color_selected;
 		}
 		else {
@@ -1025,7 +1035,7 @@ u32 show_recently_play(void)
 	return return_val;
 }
 //------------------------------------------------------------------
-void Make_recently_play_file(TCHAR* path, TCHAR* gamefilename)
+void Make_recently_play_file(TCHAR* path, TCHAR* gamefilename, u8 delete_mode)
 {
 	u32 res;
 	u32 i;
@@ -1067,11 +1077,17 @@ void Make_recently_play_file(TCHAR* path, TCHAR* gamefilename)
 			}
 		}
 	}
-	dmaCopy(buf, &(p_recently_play[0]), 512);	//write first one
+	if (!delete_mode) {
+		dmaCopy(buf, &(p_recently_play[0]), 512);	//write first one
+	}
 	res = f_open(&gfile, "RECENT.TXT", FA_WRITE | FA_OPEN_ALWAYS);
 	if (res == FR_OK) {
 		f_lseek(&gfile, 0x0000);
+		u8 n = delete_mode == 0x2 ? strlen("/SYSTEM/NOR") : strlen(buf);
 		for (i = 0; i < count + 1; i++) {
+			if (delete_mode && !strncmp(buf, p_recently_play[i], n)) {
+				continue;
+			}
 			res = f_printf(&gfile, "%s\n", p_recently_play[i]);
 		}
 		f_close(&gfile);
@@ -1362,7 +1378,7 @@ void CheckSwitch(void)
 		gl_ingame_RTC_open_status = 0x1;
 	}
 	gl_boot_option = Read_SET_info(17);
-  	if( (gl_boot_option != 0x0) && (gl_boot_option != 0x1))
+  	if( (gl_boot_option != 0x0) && (gl_boot_option != 0x1) && (gl_boot_option != 0x2))
   	{
    		gl_boot_option = 0x0;
   	}
@@ -1919,6 +1935,80 @@ void Backup_savefile(const char* filename)
 	temp_filename[temp_filename_length] = '0';
 	Copy_file(filename, temp_filename);
 }
+
+void update_extra_menu(int MENU_line, u8 reverse) {
+	if (MENU_line == 0) {
+		if (!reverse) {
+			gl_boot_option = (gl_boot_option + 1) % 3; // cycle through boot options
+		} else {
+			// Modulo wont work because (2^16 - 1) % 3 == 0
+			if (!gl_boot_option) {
+				gl_boot_option = 2;
+			}
+			else {
+				gl_boot_option--;
+			}
+		}
+	}
+	if (MENU_line == 1) { //boot to NOR.page
+		gl_show_Thumbnail = !gl_show_Thumbnail;
+	}
+	else if (MENU_line == 2) {
+		gl_toggle_reset = !gl_toggle_reset;
+	}
+	else if (MENU_line == 3) {
+		gl_toggle_backup = !gl_toggle_backup;
+	}
+	else if (MENU_line == 4) {
+		gl_toggle_bold = !gl_toggle_bold;
+	}
+}
+
+void draw_labels_extra_menu(int MENU_line, int color) {
+	if (MENU_line == 0)
+	{
+		switch (gl_boot_option) {
+			case (1):
+				DrawHZText12("(NOR)", 32, 47 + (5 * 20), 30, color, 1);
+				break;
+			case (2):
+				DrawHZText12("(LAST)", 32, 47 + (5 * 20), 30, color, 1);
+				break;							
+			default:
+				DrawHZText12("(MENU)", 32, 47 + (5 * 20), 30, color, 1);
+				break;	
+	}
+	}
+	if (MENU_line == 1)
+	{
+		if (gl_show_Thumbnail)
+			DrawHZText12("(ON)", 32, 47 + (5 * 20), 44, color, 1);
+		else
+			DrawHZText12("(OFF)", 32, 47 + (5 * 20), 44, color, 1);
+	}
+	if (MENU_line == 2)
+	{
+		if (gl_toggle_reset)
+			DrawHZText12("(ON)", 32, 47 + (5 * 20), 58, color, 1);
+		else
+			DrawHZText12("(OFF)", 32, 47 + (5 * 20), 58, color, 1);
+	}
+	if (MENU_line == 3)
+	{
+		if (gl_toggle_backup)
+			DrawHZText12("(ON)", 32, 47 + (5 * 20), 72, color, 1);
+		else
+			DrawHZText12("(OFF)", 32, 47 + (5 * 20), 72, color, 1);
+	}
+	if (MENU_line == 4)
+	{
+		if (gl_toggle_bold)
+			DrawHZText12("(ON)", 32, 47 + (5 * 20), 86, color, 1);
+		else
+			DrawHZText12("(OFF)", 32, 47 + (5 * 20), 86, color, 1);
+	}
+}
+
 //---------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------
 //---------------------------------------------------------------------------------
@@ -1929,14 +2019,15 @@ int main(void)
 	irqInit();
 	irqEnable(IRQ_VBLANK);
 	REG_IME = 1;
-	u8  l_emu_exited;
 	u32 res;
 	u32 game_folder_total;
-	u32 file_select;
-	u32 show_offset;
+	u32 file_select = 0;
+	u32 show_offset = 0;
 	u32 updata;
 	u32 continue_MENU;
+	u32 is_EMU = 0;
 	PAGE_NUM page_num = SD_list;
+	TCHAR* pfilename;
 	u32 page_mode;
 	u32 shift;
 	u32 short_filename = 0;
@@ -1946,6 +2037,7 @@ int main(void)
 	gl_toggle_backup = Read_SET_info(15);
 	gl_toggle_bold = Read_SET_info(16);
 	gl_boot_option = Read_SET_info(17);
+	gl_emu_exited = Read_SET_info(18);
 	gl_currentpage = 0x8002;//kernel mode
 	SetMode(MODE_3 | BG2_ENABLE);
 	SD_Disable();
@@ -2010,23 +2102,86 @@ int main(void)
 	Read_NOR_info();
 	gl_norOffset = 0x000000;
 	game_total_NOR = GetFileListFromNor();//initialize to prevent direct writes to NOR without page turning
+	VBlankIntrWait();
+	scanKeys();
+
 	if (game_total_NOR == 0) {
 		memset(pNorFS, 00, sizeof(FM_NOR_FS) * MAX_NOR);
 		Save_NOR_info((u16*)pNorFS, sizeof(FM_NOR_FS) * MAX_NOR);
 	}
-	else {
-		VBlankIntrWait();
-		scanKeys();
-		l_emu_exited = Read_SET_info(18);
-		if ((gl_boot_option ^ (keysDownRepeat() & KEY_L || keysDown() & KEY_L)) && !l_emu_exited)
+	else if (!((gl_boot_option && (keysDownRepeat() & KEY_L || keysDown() & KEY_L)) || gl_emu_exited)) {
+		if ((gl_boot_option == 0x1) != (keysDownRepeat() & KEY_L || keysDown() & KEY_L))
 		{
 			page_num = NOR_list;
 			goto load_file;
 		}
-		// always set emu_exit flag to 0 to restore boot behaviour set in config
-		gl_emu_exited = 0;
-		save_set_info_SELECT();
 	}
+
+	if (!((gl_boot_option && (keysDownRepeat() & KEY_L || keysDown() & KEY_L)) || gl_emu_exited)) {
+		if (((gl_boot_option == 0x2) != (keysDownRepeat() & KEY_L || keysDown() & KEY_L)))
+		{
+			page_num = SD_list;
+			if(get_count()) {
+
+				// Check if NOR Game was found
+				pfilename = p_recently_play[0];
+
+				if (!strncmp("/SYSTEM/NOR/", pfilename, strlen("/SYSTEM/NOR/"))) {
+					pfilename += strlen("/SYSTEM/NOR/");
+					TCHAR *left_slash = strchr(pfilename, '/');
+					// Failsave: If File is not as expected, don't try to boot it
+					if (!left_slash) {
+						while (1) {
+							DrawHZText12("Failed at left_slash", 20, 20, 100, gl_color_text, 1);
+							DrawHZText12(pfilename, 20, 20, 80, gl_color_text, 1);
+						
+							VBlankIntrWait();
+						}
+					
+						goto skip_autoboot;
+					}
+					*left_slash = '\0';
+					char *endptr;
+
+					long offset = strtol(pfilename, &endptr, 10);
+
+					if (*endptr != '\0') {
+						while (1) {
+							DrawHZText12("Failed at endptr check", 20, 20, 100, gl_color_text, 1);
+						
+							VBlankIntrWait();
+						}
+						goto skip_autoboot;
+					}
+
+					page_num = NOR_list;
+					file_select = (u32) offset;
+					show_offset = 0;
+				}
+				else {
+					u8* p = strrchr(p_recently_play[0], '/');
+					strncpy(currentpath_temp, currentpath, 256);//old
+					memset(currentpath, 00, 256);
+					strncpy(currentpath, p_recently_play[0], p - p_recently_play[0]);
+					if (currentpath[0] == 0) {
+						currentpath[0] = '/';
+					}
+					memset(current_filename, 00, 200);
+					strncpy(current_filename, p + 1, 100);//remove directory path
+					pfilename = current_filename;
+
+					is_EMU = Check_file_type(pfilename);
+				}
+
+				goto load_file;
+			}
+			//while(1) 	{VBlankIntrWait();}
+		}
+	}
+skip_autoboot:
+	// always set emu_exit flag to 0 to restore boot behaviour set in config
+	gl_emu_exited = 0;
+	save_set_info_SELECT();
 
 refind_file:
 	if (folder_select) {
@@ -2327,125 +2482,100 @@ re_showfile:
 				else {
 					*/
 				DrawPic((u16*)gImage_MENU, 36, 25, 168, 110, 1, 0, 1); // show menu pic - (posx, posy, width, height)
-				Show_MENU_btn();
+				Show_MENU_close();
 				u8 MENU_line = 0;
 				u8 re_menu = 1;
-				u8 MENU_max = 3;
+				u8 change = 1;
+				u8 MENU_max = 4;
 				u16 name_color = 0;
+
 				while (1)
 				{
-					if (re_menu == 1)
-					{
-						Show_Extra_Menu(MENU_line);
+					if (change) {
+
+						
+#ifdef	DARK
+						Clear(47, 30, 75 + (4 * 20), 100, RGB(0, 3, 5), 1);
+#else
+						Clear(47, 30, 75 + (4 * 20), 100, RGB(31, 31, 15), 1);
+#endif
+
+						Show_Extra_Menu(MENU_line, 0);
+						Show_MENU_close();
+
+						name_color = MENU_line == 0 ? gl_color_selected : gl_color_text;
+						switch (gl_boot_option) {
+							case (1):
+								DrawHZText12("(NOR)", 32, 42 + (6 * 20), 30, name_color, 1);
+								break;
+							case (2):
+								DrawHZText12("(LAST)", 32, 42 + (6 * 20), 30, name_color, 1);
+								break;							
+							default:
+								DrawHZText12("(MENU)", 32, 42 + (6 * 20), 30, name_color, 1);
+								break;	
+						}
+
+						name_color = MENU_line == 1 ? gl_color_selected : gl_color_text;
 						if (gl_show_Thumbnail)
-							DrawHZText12("(ON)", 32, 47 + (6 * 20), 30, gl_color_text, 1);
+							DrawHZText12("(ON)", 32, 42 + (6 * 20), 44, name_color, 1);
 						else
-							DrawHZText12("(OFF)", 32, 47 + (6 * 20), 30, gl_color_text, 1);
+							DrawHZText12("(OFF)", 32, 42 + (6 * 20), 44, name_color, 1);
+
+						name_color = MENU_line == 2 ? gl_color_selected : gl_color_text;
 						if (gl_toggle_reset)
-							DrawHZText12("(ON)", 32, 47 + (6 * 20), 44, gl_color_text, 1);
+							DrawHZText12("(ON)", 32, 42 + (6 * 20), 58, name_color, 1);
 						else
-							DrawHZText12("(OFF)", 32, 47 + (6 * 20), 44, gl_color_text, 1);
+							DrawHZText12("(OFF)", 32, 42 + (6 * 20), 58, name_color, 1);
+
+						name_color = MENU_line == 3 ? gl_color_selected : gl_color_text;
 						if (gl_toggle_backup)
-							DrawHZText12("(ON)", 32, 47 + (6 * 20), 58, gl_color_text, 1);
+							DrawHZText12("(ON)", 32, 42 + (6 * 20), 72, name_color, 1);
 						else
-							DrawHZText12("(OFF)", 32, 47 + (6 * 20), 58, gl_color_text, 1);
+							DrawHZText12("(OFF)", 32, 42 + (6 * 20), 72, name_color, 1);
+
+						name_color = MENU_line == 4 ? gl_color_selected : gl_color_text;
 						if (gl_toggle_bold)
-							DrawHZText12("(ON)", 32, 47 + (6 * 20), 72, gl_color_text, 1);
+							DrawHZText12("(ON)", 32, 42 + (6 * 20), 86, name_color, 1);
 						else
-							DrawHZText12("(OFF)", 32, 47 + (6 * 20), 72, gl_color_text, 1);
-						if (MENU_line == 1 || MENU_line == 2 || MENU_line == 3) {
-							name_color = gl_color_selected;
-						}
-						else {
-							name_color = gl_color_text;
-						}
-						if (MENU_line == 0)
-						{
-							if (gl_show_Thumbnail)
-								DrawHZText12("(ON)", 32, 47 + (6 * 20), 30, name_color, 1);
-							else
-								DrawHZText12("(OFF)", 32, 47 + (6 * 20), 30, name_color, 1);
-						}
-						if (MENU_line == 1)
-						{
-							if (gl_toggle_reset)
-								DrawHZText12("(ON)", 32, 47 + (6 * 20), 44, name_color, 1);
-							else
-								DrawHZText12("(OFF)", 32, 47 + (6 * 20), 44, name_color, 1);
-						}
-						if (MENU_line == 2)
-						{
-							if (gl_toggle_backup)
-								DrawHZText12("(ON)", 32, 47 + (6 * 20), 58, name_color, 1);
-							else
-								DrawHZText12("(OFF)", 32, 47 + (6 * 20), 58, name_color, 1);
-						}
-						if (MENU_line == 3)
-						{
-							if (gl_toggle_bold)
-								DrawHZText12("(ON)", 32, 47 + (6 * 20), 72, name_color, 1);
-							else
-								DrawHZText12("(OFF)", 32, 47 + (6 * 20), 72, name_color, 1);
-						}
-						re_menu = 0;
+							DrawHZText12("(OFF)", 32, 42 + (6 * 20), 86, name_color, 1);
 					}
-					re_menu = 0;
+
 					scanKeys();
 					u16 keysdown = keysDown();
 					u16 keysup = keysUp();
 					u16 keys_released = keysUp();
+					change = 1;
 					if (keysdown & KEY_DOWN) {
 						if (MENU_line < MENU_max) {
 							MENU_line++;
-							re_menu = 1;
 						}
 					}
 					else if (keysdown & KEY_UP) {
 						if (MENU_line > 0) {
 							MENU_line--;
-							re_menu = 1;
 						}
 					}
-					else if (keysup & KEY_B) {
+					else if (keysdown & KEY_LEFT || keysdown & KEY_L) {
+						update_extra_menu(MENU_line, 1);
+					}
+					else if (keysdown & KEY_RIGHT || keysdown & KEY_R) {
+						update_extra_menu(MENU_line, 0);
+					}
+					else if (keysup & KEY_B || keysdown & KEY_A) {
 						gl_cheat_count = 0;
 						if (play_re != 0xBB) {
 							strncpy(currentpath, currentpath_temp, 256);//
 						}
 						f_chdir(currentpath);//return to old folder
+						save_set_info_SELECT();
 						in_recently_play = 0;
 						DrawPic((u16*)gImage_SD, 0, 0, 240, 160, 0, 0, 1);
 						Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
 						goto refind_file_wo_addr_rst;
 					}
-					if (keysdown & KEY_A) {
-						if (MENU_line == 0) { //boot to NOR.page
-							gl_show_Thumbnail = !gl_show_Thumbnail;
-							save_set_info_SELECT();
-							updata = 1;
-							Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
-							goto refind_file_wo_addr_rst;
-						}
-						else if (MENU_line == 1) {
-							gl_toggle_reset = !gl_toggle_reset;
-							save_set_info_SELECT();
-							updata = 1;
-							Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
-							goto refind_file_wo_addr_rst;
-						}
-						else if (MENU_line == 2) {
-							gl_toggle_backup = !gl_toggle_backup;
-							save_set_info_SELECT();
-							updata = 1;
-							Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
-							goto refind_file_wo_addr_rst;
-						}
-						else if (MENU_line == 3) {
-							gl_toggle_bold = !gl_toggle_bold;
-							save_set_info_SELECT();
-							updata = 1;
-							Refresh_filename(show_offset, file_select, updata, gl_show_Thumbnail && is_GBA);
-							goto refind_file_wo_addr_rst;
-						}
+					else {
+						change = 0;
 					}
 				}
 			//}
@@ -2504,7 +2634,6 @@ re_showfile:
 		}	//2
 		continue_MENU = 0;
 		//press A, show boot MENU;
-		TCHAR* pfilename;
 		if (play_re == 0xBB) {
 			if (page_num == SD_list) {
 				pfilename = pFilename_buffer[show_offset + file_select - folder_total].filename;
@@ -2531,7 +2660,8 @@ re_showfile:
 		u32 MENU_line = 0;
 		u32 re_menu = 1;
 		u32 MENU_max;
-		u32 is_EMU = Check_file_type(pfilename);
+
+		is_EMU = Check_file_type(pfilename);
 		if (is_EMU == 0xff) {
 			goto re_showfile;
 		}
@@ -2665,6 +2795,9 @@ re_showfile:
 		u32 gamefilesize = 0;
 		u32 savefilesize = 0;
 		u32 ret;
+
+		//char message[20] = is_EMU ? "IS EMU: 1" : 1 
+
 		TCHAR savfilename[100];
 		BYTE saveMODE;
 		u32 have_pat = 0;
@@ -2727,9 +2860,18 @@ re_showfile:
 		if (page_num == SD_list) {
 			if (MENU_line < 2) { //PSRAM DirectPSRAM or soft reset
 				res = f_chdir("/SYSTEM");
-				Make_recently_play_file(currentpath, pfilename);
+				Make_recently_play_file(currentpath, pfilename, 0x0);
 				res = f_chdir("/SYSTEM/SAVER");
 			}
+		}
+		if (page_num == NOR_list) {
+			res = f_chdir("/SYSTEM");
+			// NOR IDs stored as part of filename -> possible because Nor Games are stored as LIFO Stack
+			char index_buffer[4 + strlen("/SYSTEM/NOR/")];
+			// TODO: Not working correctly
+			snprintf(index_buffer, 4 + strlen("/SYSTEM/NOR/"), "/SYSTEM/NOR/%d", show_offset + file_select);
+			Make_recently_play_file(index_buffer, pfilename, MENU_line);
+			res = f_chdir("/");			
 		}
 		if (Save_num == 0) { //auto
 			saveMODE = Check_saveMODE(GAMECODE);

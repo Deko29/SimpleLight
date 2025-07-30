@@ -95,7 +95,7 @@ u32 Setting_window(void)
 
 	u32 addon_sel=4;
 
-	u8 boot_pos = 2;
+	u8 boot_pos = 3;
 	
 	u8 sleep_pos=0;
 	u8 rtshotkey_pos=0;
@@ -190,19 +190,28 @@ u32 Setting_window(void)
 				Draw_select_icon(x_offset,y_offset+line_x*2,!gl_boot_option);
 
 
-				sprintf(msg,"%s","EZ-MENU");
+				sprintf(msg,"%s","MENU");
 
 
 				DrawHZText12(msg,0,x_offset+15,y_offset+line_x*2,(boot_pos==0)?gl_color_selected:gl_color_text,1);
 
 
-				Draw_select_icon(x_offset+12*6,y_offset+line_x*2,gl_boot_option);
+				Draw_select_icon(x_offset+12*4,y_offset+line_x*2,gl_boot_option == 0x1);
 
 
-				sprintf(msg,"%s","NOR GAME");
+				sprintf(msg,"%s","NOR");
 
 
-				DrawHZText12(msg,0,x_offset+12*6+15,y_offset+line_x*2,(boot_pos==1)?gl_color_selected:gl_color_text,1);
+				DrawHZText12(msg,0,x_offset+12*4+15,y_offset+line_x*2,(boot_pos==1)?gl_color_selected:gl_color_text,1);
+
+
+				Draw_select_icon(x_offset+12*8,y_offset+line_x*2,gl_boot_option == 0x2);
+
+
+				sprintf(msg,"%s","LAST");
+
+
+				DrawHZText12(msg,0,x_offset+12*8+15,y_offset+line_x*2,(boot_pos==2)?gl_color_selected:gl_color_text,1);
 			
 			//					
 			sprintf(msg,"%s",gl_language);
@@ -262,7 +271,7 @@ u32 Setting_window(void)
 						clean_color = gl_color_btn_clean;					
 					else if((line== select) && (1== select) && (addon_sel==4)) 
 						clean_color = gl_color_btn_clean;	
-					else if((line== select) && (2== select) && (boot_pos==2))
+					else if((line== select) && (2== select) && (boot_pos==3))
 						clean_color = gl_color_btn_clean;
 					else if((line== select) && (4== select) && (engine_pos==1)) 
 						clean_color = gl_color_btn_clean;	
@@ -1056,7 +1065,7 @@ u32 Setting_window(void)
 						{
 							addon_sel++;
 						}
-						else if(select ==2 && boot_pos <2)
+						else if(select ==2 && boot_pos <3)
 						{
 							boot_pos++;
 						}
@@ -1153,7 +1162,7 @@ u32 Setting_window(void)
 						}
 						else if(select == 2) 
 						{
-							if(boot_pos < 2) {
+							if(boot_pos < 3) {
 								gl_boot_option = boot_pos;
 							}
 							else {

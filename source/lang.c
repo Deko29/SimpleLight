@@ -15,6 +15,7 @@ char* gl_theme_credit3;
 char* gl_generating_emu;
 
 char* gl_menu_btn;
+char* gl_menu_close;
 char* gl_lastest_game;
 
 char* gl_writing;
@@ -102,6 +103,7 @@ const char zh_Loading[]="������...";
 const char zh_file_overflow[]="�ļ�̫��,���ܼ���";
 
 const char zh_menu_btn[]=" (B)ȡ��    (A)ȷ��";
+const char zh_menu_close[]="(B/A) Close window";
 const char zh_writing[]="����д��...";
 const char zh_lastest_game[]="��ѡ�����һ����Ϸ";
 
@@ -190,7 +192,8 @@ const char *zh_nor_op[3]={
 	"ȫ����ʽ��",
 };
 
-const char *zh_more_options[4]={
+const char *zh_more_options[5]={
+	"Boot Option",
 	"�л�����ͼ",
 	"ʹ��BIOS���",
 	"�л�����",
@@ -204,7 +207,8 @@ const char en_init_ok[]="microSD card initialization successful.";
 const char en_Loading[]="Loading...";
 const char en_file_overflow[]="The file is too big.";
 
-const char en_menu_btn[]=" (B) No     (A) OK";
+const char en_menu_btn[]=  " (B) No     (A) OK";
+const char en_menu_close[]="(B/A) Close window";
 const char en_writing[]="Writing...";
 const char en_lastest_game[]="Select the lastest";
 
@@ -233,7 +237,7 @@ const char en_ok_btn[]=" OK";
 const char en_formatnor_info1[]="Are you sure?";
 const char en_formatnor_info2[]="This will take a while.";
 
-const char en_theme_credit[]="Simple v3.8.2 by";
+const char en_theme_credit[]="Simple v3.8.3e by";
 const char en_theme_credit2[]="Atapi/Sterophonick.";
 const char en_theme_credit3[]="Fork by: Maxim Balajan";
 
@@ -294,7 +298,8 @@ const char *en_nor_op[3]={
 	"Delete",
 	"Format all",
 };	
-const char *en_more_options[4]={
+const char *en_more_options[5]={
+	"Boot Option",
 	"Toggle thumbnail",
 	"Use BIOS intro",
 	"Backup saves",
@@ -315,6 +320,7 @@ void LoadChinese(void)
 	gl_theme_credit3 = (char*)en_theme_credit3;
 
 	gl_menu_btn = (char*)zh_menu_btn;
+	gl_menu_close = (char*)zh_menu_close;
 	gl_writing = (char*)zh_writing;
 	gl_lastest_game = (char*)zh_lastest_game;
 	
@@ -408,6 +414,7 @@ void LoadEnglish(void)
 	gl_file_overflow = (char*)en_file_overflow;
 
 	gl_menu_btn = (char*)en_menu_btn;
+	gl_menu_close = (char*)en_menu_close;
 	gl_writing = (char*)en_writing;
 	gl_lastest_game = (char*)en_lastest_game;
 	
