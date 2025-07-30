@@ -4,7 +4,7 @@
 
 This is SimpleLight++, a small Fork of the SimpleLight CFW aimed to introduce new QoL features and to fix various bugs.
 
-Huge thank you to all authors of the original CFW and the SimpleLight CFW, without you this project wouldn't be possible!
+Huge thank you to all authors of the original FW and the SimpleLight CFW, without you this project wouldn't be possible!
 
 ## New Features
 - New Boot Options:
@@ -13,7 +13,7 @@ Huge thank you to all authors of the original CFW and the SimpleLight CFW, witho
   - NOR: Boot into first NOR game. If L is pressed, boot into the EZ-Menu
   - LAST: Boot into your last recent game/software (also takes NOR Games into account). If L is pressed, boot into the EZ-Menu
     
-- Overhauled Settings and extra Settings window! Extra Settings Window now controllable via arrow and L/R keys
+- Overhauled Settings and extra Settings window! Extra Settings now controllable via arrow and L/R keys
 
 ## Bug Fixes:
 * "Fixed" memory corruption after exiting GB/GBC games. Saves should be safer on standard Omega cards \
