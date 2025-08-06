@@ -1928,7 +1928,15 @@ void Backup_savefile(const char* filename)
 	strncpy(temp_filename + temp_filename_length, filename, sizeof(temp_filename) - temp_filename_length - 2);
 	temp_filename_length = strlen(temp_filename);
 
-	f_mkdir(backup_dir);
+	FRESULT res = f_mkdir("/BACKUP");
+	if (res != FR_OK && res != FR_EXIST) {
+		return;
+	}
+	res = f_mkdir(backup_dir);
+	if (res != FR_OK && res != FR_EXIST) {
+		return;
+	}
+	
 	strncpy(temp_filename_dst, temp_filename, sizeof(temp_filename_dst));
 
 	for (s8 i = 3; i >= 0; --i)
@@ -2912,7 +2920,18 @@ re_showfile:
 				Make_mde_file(pfilename, Save_num);
 			}
 		}
+		res = f_mkdir("/SYSTEM");
+		if (res != FR_OK && res != FR_EXIST) {
+			error_num = 2;
+			Show_error_num(error_num);
+			goto re_showfile;
+		}
 		res = f_mkdir("/SYSTEM/SAVER");
+		if (res != FR_OK && res != FR_EXIST) {
+			error_num = 2;
+			Show_error_num(error_num);
+			goto re_showfile;
+		}
 		res = f_chdir("/SYSTEM/SAVER");
 		if (res != FR_OK) {
 			error_num = 2;

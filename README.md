@@ -17,7 +17,8 @@ Huge thank you to all authors of the original FW and the SimpleLight CFW, withou
 
 ## Bug Fixes:
 * "Fixed" memory corruption after exiting GB/GBC games. Saves should be safer on standard Omega cards \
-  (NO GARANTEE THAT SAVES ARE SECURE!)
+  (NO GARANTEE THAT SAVES ARE SECURE! Always exit via Jagoomba's integrated "EXIT" option!)
+* The Save backup folder is correctly initialized if it does not exist
 * Cursor of file explorer will not reset anymore when opening expanded settings via SELECT
 * Various other minor tweeks
 
