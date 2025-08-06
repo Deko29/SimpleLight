@@ -27,7 +27,7 @@ Huge thank you to all authors of the original FW and the SimpleLight CFW, withou
 
 ## Notes
 * DO NOT alter the "RECENT.TXT" file! This is used for the "LAST" boot option and can otherwise lead to undefined behaviour
-* DO NOT create a folder/file called "NOR" on root level! An error should be thrown because this keyword is reserved for NOR games
+* DO NOT create a folder/file called "NOR" on root level! This is not checked because of performance reasons and can lead to undefined behaviour
 
 If you have any feature requests or issues, please let me know :)
 
