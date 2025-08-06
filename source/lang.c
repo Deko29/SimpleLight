@@ -196,12 +196,13 @@ const char *zh_nor_op[3]={
 	"ȫ����ʽ��",
 };
 
-const char *zh_more_options[5]={
+const char *zh_more_options[6]={
 	"Boot Option",
 	"�л�����ͼ",
 	"ʹ��BIOS���",
 	"�л�����",
 	"�л�����",
+	"Operation Type",
 };
 
 //English
@@ -304,12 +305,13 @@ const char *en_nor_op[3]={
 	"Delete",
 	"Format all",
 };	
-const char *en_more_options[5]={
+const char *en_more_options[6]={
 	"Boot Option",
 	"Toggle thumbnail",
 	"Use BIOS intro",
 	"Backup saves",
 	"Toggle bold",
+	"Operation Type"
 	//Start Random Game
 };
 

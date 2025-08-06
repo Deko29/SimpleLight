@@ -24,9 +24,7 @@
 #include "images/splash.h"
 
 #ifdef DARK
-// Uncomment this if slower startup time doesn't bother you but want to have a (hopefully) bugless experience
-// Some error screens might be untested, so watch out...
-// #ifdef SLOW_BUT_SAFE
+
 #include "images/dark/SD.h"
 #include "images/dark/NOR.h"
 #include "images/dark/SET.h"
@@ -140,6 +138,7 @@ u16 gl_rts_on;
 u16 gl_sleep_on;
 u16 gl_cheat_on;
 u16 gl_boot_option;
+u16 gl_operation_type;
 
 //----------------------------------------
 u16 gl_color_selected = RGB(00, 20, 26);
@@ -899,7 +898,7 @@ void Show_Extra_Menu(u32 menu_select, u8 delete)
 	u16 name_color;
 	char msg[30];
 	u32 linemax;
-	linemax = 5;
+	linemax = 6;
 	for (line = 0; line < linemax; line++) {
 		if (delete) {
 			name_color = gl_color_MENU_btn;
@@ -1385,9 +1384,17 @@ void CheckSwitch(void)
    		gl_boot_option = 0x0;
   	}
 
+	gl_emu_exited = Read_SET_info(18);
 	if( (gl_emu_exited != 0x0) && (gl_emu_exited != 0x1))
   	{
    		gl_emu_exited = 0x0;
+  	}
+
+	gl_operation_type = Read_SET_info(19);
+  	if( (gl_operation_type != 0x0) && (gl_operation_type != 0x1))
+  	{
+		// default to FAST option
+   		gl_operation_type = 0x1;
   	}
 }
 //---------------------------------------------------------------------------------
@@ -1652,6 +1659,7 @@ void save_set_info_SELECT(void)
 	SET_info_buffer[16] = gl_toggle_bold;
 	SET_info_buffer[17] = gl_boot_option;
 	SET_info_buffer[18] = gl_emu_exited;
+	SET_info_buffer[19] = gl_operation_type;
 	//save to nor
 	Save_SET_info(SET_info_buffer, 0x200);
 }
@@ -1928,13 +1936,15 @@ void Backup_savefile(const char* filename)
 	strncpy(temp_filename + temp_filename_length, filename, sizeof(temp_filename) - temp_filename_length - 2);
 	temp_filename_length = strlen(temp_filename);
 
-	FRESULT res = f_mkdir("/BACKUP");
-	if (res != FR_OK && res != FR_EXIST) {
-		return;
-	}
-	res = f_mkdir(backup_dir);
-	if (res != FR_OK && res != FR_EXIST) {
-		return;
+	if (gl_operation_type) {
+		FRESULT res = f_mkdir("/BACKUP");
+		if (res != FR_OK && res != FR_EXIST) {
+			return;
+		}
+		res = f_mkdir(backup_dir);
+		if (res != FR_OK && res != FR_EXIST) {
+			return;
+		}
 	}
 	
 	strncpy(temp_filename_dst, temp_filename, sizeof(temp_filename_dst));
@@ -1977,6 +1987,9 @@ void update_extra_menu(int MENU_line, u8 reverse) {
 	}
 	else if (MENU_line == 4) {
 		gl_toggle_bold = !gl_toggle_bold;
+	}
+	else if (MENU_line == 5) {
+		gl_operation_type = !gl_operation_type;
 	}
 }
 
@@ -2022,6 +2035,13 @@ void draw_labels_extra_menu(int MENU_line, int color) {
 			DrawHZText12("(ON)", 32, 47 + (5 * 20), 86, color, 1);
 		else
 			DrawHZText12("(OFF)", 32, 47 + (5 * 20), 86, color, 1);
+	}
+	if (MENU_line == 5)
+	{
+		if (gl_operation_type)
+			DrawHZText12("(SAFE)", 32, 47 + (5 * 20), 86, color, 1);
+		else
+			DrawHZText12("(FAST)", 32, 47 + (5 * 20), 86, color, 1);
 	}
 }
 
@@ -2112,6 +2132,7 @@ int main(void)
 	gl_toggle_bold = Read_SET_info(16);
 	gl_boot_option = Read_SET_info(17);
 	gl_emu_exited = Read_SET_info(18);
+	gl_operation_type = Read_SET_info(19);
 	gl_currentpage = 0x8002;//kernel mode
 	SetMode(MODE_3 | BG2_ENABLE);
 	SD_Disable();
@@ -2175,16 +2196,16 @@ int main(void)
 	gl_norOffset = 0x000000;
 	game_total_NOR = GetFileListFromNor();//initialize to prevent direct writes to NOR without page turning
 
-#ifdef SLOW_BUT_SAFE
-	FILINFO fno;
-    res = f_stat("/NOR", &fno);
-    if (res == FR_OK || res != FR_NO_FILE) {
-		Show_error_num(8);
-		while(1) {
-			VBlankIntrWait();
+	if(gl_operation_type) {
+		FILINFO fno;
+		res = f_stat("/NOR", &fno);
+		if (res == FR_OK || res != FR_NO_FILE) {
+			Show_error_num(8);
+			while(1) {
+				VBlankIntrWait();
+			}
 		}
-    }
-#endif
+	}
 
 	VBlankIntrWait();
 	scanKeys();
@@ -2213,15 +2234,15 @@ int main(void)
 				if (check_recent_boot_option(&pfilename, &most_recent_entry, &is_EMU, &page_num, &file_select, &show_offset, &curr_path)) {
 					goto skip_autoboot;
 				}
-#ifdef SLOW_BUT_SAFE
-				if (page_num == SD_list) {
-					FILINFO fno;
-					// If file does not exist, then do not attempt to autoboot
-					if (f_stat(most_recent_entry, &fno) != FR_OK) {
-						goto skip_autoboot;
+				if (gl_operation_type) {
+					if (page_num == SD_list) {
+						FILINFO fno;
+						// If file does not exist, then do not attempt to autoboot
+						if (f_stat(most_recent_entry, &fno) != FR_OK) {
+							goto skip_autoboot;
+						}
 					}
 				}
-#endif
 
 				goto load_file;
 			}
@@ -2535,7 +2556,7 @@ re_showfile:
 				u8 MENU_line = 0;
 				u8 re_menu = 1;
 				u8 change = 1;
-				u8 MENU_max = 4;
+				u8 MENU_max = 5;
 				u16 name_color = 0;
 
 				while (1)
@@ -2588,6 +2609,12 @@ re_showfile:
 							DrawHZText12("(ON)", 32, 42 + (6 * 20), 86, name_color, 1);
 						else
 							DrawHZText12("(OFF)", 32, 42 + (6 * 20), 86, name_color, 1);
+						name_color = MENU_line == 5 ? gl_color_selected : gl_color_text;
+						if (gl_operation_type)
+							DrawHZText12("(SAFE)", 32, 42 + (6 * 20), 100, name_color, 1);
+						else
+							DrawHZText12("(FAST)", 32, 42 + (6 * 20), 100, name_color, 1);
+
 					}
 
 					scanKeys();
@@ -2920,17 +2947,20 @@ re_showfile:
 				Make_mde_file(pfilename, Save_num);
 			}
 		}
-		res = f_mkdir("/SYSTEM");
-		if (res != FR_OK && res != FR_EXIST) {
-			error_num = 2;
-			Show_error_num(error_num);
-			goto re_showfile;
-		}
-		res = f_mkdir("/SYSTEM/SAVER");
-		if (res != FR_OK && res != FR_EXIST) {
-			error_num = 2;
-			Show_error_num(error_num);
-			goto re_showfile;
+		if (gl_operation_type) {
+			res = f_mkdir("/SYSTEM");
+			if (res != FR_OK && res != FR_EXIST) {
+				error_num = 2;
+				Show_error_num(error_num);
+				goto re_showfile;
+			}
+		
+			res = f_mkdir("/SYSTEM/SAVER");
+			if (res != FR_OK && res != FR_EXIST) {
+				error_num = 2;
+				Show_error_num(error_num);
+				goto re_showfile;
+			}
 		}
 		res = f_chdir("/SYSTEM/SAVER");
 		if (res != FR_OK) {
