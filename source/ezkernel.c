@@ -2217,7 +2217,7 @@ int main(void)
 	else if (!((gl_boot_option && (keysDownRepeat() & KEY_L || keysDown() & KEY_L)) || gl_emu_exited)) {
 		if ((gl_boot_option == 0x1) != (keysDownRepeat() & KEY_L || keysDown() & KEY_L))
 		{
-			if (game_total_NOT == 0) goto skip_autoboot;
+			if (game_total_NOR == 0) goto skip_autoboot;
 			page_num = NOR_list;
 			goto load_file;
 		}
