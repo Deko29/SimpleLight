@@ -2217,6 +2217,7 @@ int main(void)
 	else if (!((gl_boot_option && (keysDownRepeat() & KEY_L || keysDown() & KEY_L)) || gl_emu_exited)) {
 		if ((gl_boot_option == 0x1) != (keysDownRepeat() & KEY_L || keysDown() & KEY_L))
 		{
+			if (game_total_NOT == 0) goto skip_autoboot;
 			page_num = NOR_list;
 			goto load_file;
 		}
@@ -2734,14 +2735,6 @@ re_showfile:
 				goto re_showfile;
 			}
 
-			if (page_num == NOR_list) {
-				res = f_chdir("/SYSTEM");
-				// NOR IDs stored as part of filename -> possible because Nor Games are stored as LIFO Stack
-				char index_buffer[4 + strlen("/NOR/")];
-				snprintf(index_buffer, 4 + strlen("/NOR/"), "/NOR/%d", show_offset + file_select);
-				Make_recently_play_file(index_buffer, pfilename, 0);	
-			}
-
 			goto load_file;
 		}
 		u8 Save_num = 0;//save tpye: auto
@@ -2950,30 +2943,44 @@ re_showfile:
 		if (gl_operation_type) {
 			res = f_mkdir("/SYSTEM");
 			if (res != FR_OK && res != FR_EXIST) {
-				error_num = 2;
+				error_num = 0;
 				Show_error_num(error_num);
 				goto re_showfile;
 			}
 		
 			res = f_mkdir("/SYSTEM/SAVER");
 			if (res != FR_OK && res != FR_EXIST) {
-				error_num = 2;
+				error_num = 0;
 				Show_error_num(error_num);
 				goto re_showfile;
 			}
 		}
-		res = f_chdir("/SYSTEM/SAVER");
+
+		res = f_chdir("/SYSTEM");
 		if (res != FR_OK) {
-			error_num = 2;
+			error_num = 0;
 			Show_error_num(error_num);
 			goto re_showfile;
 		}
 		if (page_num == SD_list) {
 			if (MENU_line < 2) { //PSRAM DirectPSRAM or soft reset
-				res = f_chdir("/SYSTEM");
 				Make_recently_play_file(currentpath, pfilename, 0x0);
-				res = f_chdir("/SYSTEM/SAVER");
 			}
+		}
+		else if (page_num == NOR_list) {
+			if (MENU_line < 1) {
+				// NOR IDs stored as part of filename -> possible because Nor Games are stored as LIFO Stack
+				char index_buffer[4 + strlen("/NOR/")];
+				snprintf(index_buffer, 4 + strlen("/NOR/"), "/NOR/%d", show_offset + file_select);
+				Make_recently_play_file(index_buffer, pfilename, 0);
+			}	
+		}
+
+		res = f_chdir("/SYSTEM/SAVER");
+		if (res != FR_OK) {
+			error_num = 2;
+			Show_error_num(error_num);
+			goto re_showfile;
 		}
 		if (Save_num == 0) { //auto
 			saveMODE = Check_saveMODE(GAMECODE);
