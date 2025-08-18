@@ -244,7 +244,7 @@ const char en_formatnor_info2[]="This will take a while.";
 
 const char en_theme_credit[]="SimpleLight++ v3.8.3 by";
 const char en_theme_credit2[]="Atapi/Sterophonick.";
-const char en_theme_credit3[]="Fork by: Maxim Balajan";
+const char en_theme_credit3[]="Fork by: Deko";
 
 const char en_check_sav[]="Checking Save Data...";
 const char en_make_sav[] ="Creating Save Data...";

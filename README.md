@@ -1,6 +1,7 @@
 ###### FORKED FROM https://github.com/Sterophonick/SimpleLight
 
 # SimpleLight++ (EZ Flash Omega)
+###### *If you're looking for SimpleLightDE++ for the EZ Flash Omega **Definitive Edition**, check here: https://github.com/Deko29/SimpleLightDE-pp*
 
 This is SimpleLight++, a small Fork of the SimpleLight CFW aimed to introduce new QoL features and to fix various bugs.
 
@@ -34,8 +35,6 @@ If you have any feature requests or issues, please let me know :)
 # Original ReadMe...
 
 ###### FORKED FROM https://github.com/ez-flash/omega-kernel
-
-###### *If you're looking for SimpleLight for the EZ Flash Omega **Definitive Edition**, check here: https://github.com/Sterophonick/omega-de-kernel*
 
 Hello all!
 
